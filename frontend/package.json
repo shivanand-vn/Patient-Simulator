@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "desktop": "tauri dev",
-    "dev": "tauri dev",
-    "desktop:build": "tauri build",
+    "desktop": "node scripts/run-desktop.js dev",
+    "dev": "node scripts/run-desktop.js dev",
+    "desktop:build": "node scripts/run-desktop.js build",
     "vite": "vite",
     "build": "tsc && vite build",
     "tauri": "tauri"
