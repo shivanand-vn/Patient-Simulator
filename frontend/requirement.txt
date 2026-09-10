@@ -1,0 +1,35 @@
+AI Patient Simulation Engine - Desktop Environment Requirements
+================================================================
+
+PREREQUISITES:
+1. Node.js (v18+ or v20+) & npm
+2. Rust Toolchain (rustc & cargo)
+3. Microsoft Visual Studio C++ Build Tools (with "Desktop development with C++" workload)
+4. Microsoft Edge WebView2 Runtime
+
+AUTOMATED ONE-CLICK SETUP (POWERSHELL):
+--------------------------------------
+To automatically check and install all system tools and dependencies, open PowerShell in this folder and run:
+  .\setup.ps1
+
+MANUAL INSTALLATION COMMANDS:
+----------------------------
+1. Install Rust:
+   winget install Rustlang.Rustup
+
+2. Install Visual Studio C++ Build Tools:
+   winget install Microsoft.VisualStudio.2022.BuildTools --override "--passive --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+
+3. Refresh Terminal PATH:
+   $env:Path = "$HOME\.cargo\bin;$env:Path"
+
+4. Install Project Packages:
+   npm install --legacy-peer-deps
+
+RUNNING THE APPLICATION:
+-----------------------
+Launch Desktop Application (1366x768):
+  npm run desktop
+
+Build Windows Installer / Standalone .exe:
+  npm run desktop:build
