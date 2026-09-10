@@ -7,6 +7,12 @@ import os
 import sys
 from pathlib import Path
 import asyncpg
+from dotenv import load_dotenv
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+load_dotenv()
 
 # Paths to SQL files
 BASE_DIR = Path(__file__).resolve().parent.parent

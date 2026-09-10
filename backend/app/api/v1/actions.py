@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 import uuid
 
 from app.core.database import get_db
-from app.models.simulation import SimulationSession, SessionAction, SessionVitalsLog, SessionStateTransition
+from app.models.simulation import SimulationSession, SessionAction, SessionVitalsLog
 from app.models.clinical import CaseVersion, ScenarioState
 from app.schemas.session import ActionCreateRequest, ActionResponse
 from app.services.simulation.state_machine import SimulationStateMachine
