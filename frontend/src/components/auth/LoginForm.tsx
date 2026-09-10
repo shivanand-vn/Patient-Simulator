@@ -111,8 +111,8 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col justify-between p-8 sm:p-10 lg:p-12 bg-white rounded-r-2xl sm:rounded-r-3xl">
-      <div>
+    <div className="flex flex-col justify-between h-full p-8 sm:p-10 lg:p-12 bg-white rounded-r-2xl sm:rounded-r-3xl">
+      <div className="my-auto w-full py-2">
         {/* Header with Medical Icon */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-clinical-850 flex items-center justify-center text-white shadow-sm ring-1 ring-clinical-900/10">
@@ -296,7 +296,7 @@ export const LoginForm: React.FC = () => {
       </div>
 
       {/* Footer System Diagnostics / Info */}
-      <div className="pt-8 mt-6 border-t border-slate-100 flex flex-wrap items-center justify-between text-[11px] text-slate-400 font-mono">
+      <div className="pt-6 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-between text-[11px] text-slate-400 font-mono">
         <span>v1.0.0-clinical-build</span>
         <div className="flex items-center gap-3">
           <button 
