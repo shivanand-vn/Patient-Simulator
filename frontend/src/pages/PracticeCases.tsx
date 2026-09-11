@@ -6,11 +6,8 @@ import {
   ArrowRight, 
   RotateCcw, 
   Check, 
-  Plus, 
   ChevronDown,
-  Sparkles,
-  CheckCircle2,
-  X
+  CheckCircle2
 } from 'lucide-react';
 
 interface CaseModule {
@@ -85,8 +82,6 @@ export const PracticeCases: React.FC<PracticeCasesProps> = ({ onNavigate }) => {
   const [selectedStatus, setSelectedStatus] = useState('All');
   
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [showCustomModal, setShowCustomModal] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState('');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -122,14 +117,6 @@ export const PracticeCases: React.FC<PracticeCasesProps> = ({ onNavigate }) => {
     }, 600);
   };
 
-  const handleCreateCustomCase = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customPrompt.trim()) return;
-    setShowCustomModal(false);
-    setCustomPrompt('');
-    showToast('AI Patient Generator: Customized clinical scenario synthesized successfully.');
-  };
-
   return (
     <div className="flex flex-col gap-6 w-full pb-12">
       {/* Page Header */}
@@ -140,17 +127,9 @@ export const PracticeCases: React.FC<PracticeCasesProps> = ({ onNavigate }) => {
           </div>
           <h1 className="text-2xl font-bold text-on-surface font-headline">Practice Cases</h1>
           <p className="text-sm text-on-surface-variant mt-0.5">
-            Choose a clinical case to begin your simulation and test your diagnostic reasoning in real-time.
+            Faculty-curated clinical simulation cases for student training and diagnostic evaluation.
           </p>
         </div>
-
-        <button
-          onClick={() => setShowCustomModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-primary hover:bg-primary-container text-on-primary transition-all shadow-sm self-start sm:self-auto shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Custom Case Generator</span>
-        </button>
       </div>
 
       {/* Toast Feedback Notification */}
@@ -409,74 +388,6 @@ export const PracticeCases: React.FC<PracticeCasesProps> = ({ onNavigate }) => {
           </button>
         </div>
       </div>
-
-      {/* Custom Case Generator Modal */}
-      {showCustomModal && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn"
-          onClick={() => setShowCustomModal(false)}
-        >
-          <div 
-            className="bg-surface-container-lowest border border-surface-container/80 rounded-2xl p-6 max-w-lg w-full shadow-2xl flex flex-col gap-4 text-left"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-primary">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-on-surface font-headline">
-                    AI Custom Case Generator
-                  </h3>
-                  <p className="text-xs text-outline">
-                    Synthesize personalized patient encounters on demand.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowCustomModal(false)}
-                className="p-1 rounded-lg text-outline hover:text-on-surface transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateCustomCase} className="flex flex-col gap-4 mt-2">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-on-surface-variant">
-                  Clinical Presentation / Learning Objectives
-                </label>
-                <textarea
-                  rows={4}
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="e.g. 64-year-old male with acute onset dizziness, orthostatic hypotension, and history of type 2 diabetes on metformin..."
-                  className="w-full px-3.5 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
-                  required
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-surface-container">
-                <button
-                  type="button"
-                  onClick={() => setShowCustomModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-on-surface-variant hover:bg-surface-container-high transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary hover:bg-primary-container text-on-primary transition-colors shadow-sm"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Generate Case</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,124 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Activity, 
   Heart, 
   Wind, 
   Thermometer, 
-  Mic, 
-  Send, 
   Pause, 
   Play, 
-  AlertCircle,
   Clock,
   Languages,
-  User
+  User,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { NavTab } from '../types/navigation';
+import { useSimulationConversation } from '../hooks/useSimulationConversation';
+import { DialogueBubble } from '../components/simulation/DialogueBubble';
+import { DialogueInput } from '../components/simulation/DialogueInput';
 
 interface SimulationProps {
   onNavigate?: (tab: NavTab) => void;
-}
-
-interface Message {
-  sender: 'doctor' | 'patient' | 'system';
-  text: string;
-  time: string;
 }
 
 type SimLanguage = 'en' | 'kn' | 'hi';
 
 export const Simulation: React.FC<SimulationProps> = ({ onNavigate }) => {
   const [isPaused, setIsPaused] = useState(false);
-  const [inputMessage, setInputMessage] = useState('');
-  const [simulationLanguage, setSimulationLanguage] = useState<SimLanguage>('en');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const languageLabels: Record<SimLanguage, { name: string; native: string; placeholder: string }> = {
     en: { 
       name: 'English', 
       native: 'English (US)',
-      placeholder: "Type your clinical question (e.g. 'Can you rate your pain from 1 to 10?')..."
+      placeholder: "Type your clinical question (e.g. 'Where does the pain start?')..."
     },
     kn: { 
       name: 'Kannada', 
       native: 'ಕನ್ನಡ',
-      placeholder: "ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ (ಉದಾ: 'ನಿಮ್ಮ ಎದೆ ನೋವು ಹೇಗಿದೆ?')..."
+      placeholder: "ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ (ಉದಾ: 'ನೋವು ಎಲ್ಲಿ ಪ್ರಾರಂಭವಾಯಿತು?')..."
     },
     hi: { 
       name: 'Hindi', 
       native: 'हिन्दी',
-      placeholder: "अपना प्रश्न यहाँ लिखें (उदा: 'दर्द कितना तेज है?')..."
+      placeholder: "अपना प्रश्न यहाँ लिखें (उदा: 'दर्द कहाँ शुरू होता है?')..."
     }
   };
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: 'system',
-      text: 'Simulation initiated: 58-year-old male presenting to ED triage with acute retrosternal chest pain. Virtual Patient ready.',
-      time: '14:30'
-    },
-    {
-      sender: 'doctor',
-      text: 'Hello Mr. Henderson, I understand you are having chest pain. Can you tell me when this started?',
-      time: '14:31'
-    },
-    {
-      sender: 'patient',
-      text: 'Doctor, it started about 45 minutes ago while I was climbing the stairs. It feels like a heavy pressure right in the middle of my chest, and it aches down into my left arm.',
-      time: '14:31'
-    }
-  ]);
+  const {
+    messages,
+    isProcessing,
+    speakingMessageId,
+    speechStatus,
+    isMuted,
+    language,
+    sendMessage,
+    playMessageSpeech,
+    pauseSpeech,
+    resumeSpeech,
+    stopSpeech,
+    toggleMute,
+    setLanguage
+  } = useSimulationConversation({
+    caseId: 'SIM-8842-AX',
+    scenarioTitle: 'Acute Chest Pain',
+    initialLanguage: 'en'
+  });
+
+  // Auto-scroll to bottom of conversation whenever messages change or processing starts
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isProcessing]);
 
   const handleLanguageChange = (newLang: SimLanguage) => {
-    setSimulationLanguage(newLang);
-    let switchNote = '';
-    if (newLang === 'kn') {
-      switchNote = 'ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗಿದೆ. AI ರೋಗಿ ಈಗ ಕನ್ನಡದಲ್ಲಿ ಸಂಭಾಷಣೆ ನಡೆಸುತ್ತಾರೆ.';
-    } else if (newLang === 'hi') {
-      switchNote = 'संवाद भाषा हिन्दी चुनी गई है। AI रोगी अब हिन्दी में बातचीत करेंगे।';
-    } else {
-      switchNote = 'Simulation language switched to English. Virtual Patient will now converse in English.';
-    }
-    setMessages((prev) => [
-      ...prev,
-      {
-        sender: 'system',
-        text: switchNote,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }
-    ]);
-  };
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim()) return;
-
-    const newMsg: Message = {
-      sender: 'doctor',
-      text: inputMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
-    setInputMessage('');
-
-    // Simulated patient response tailored to language
-    setTimeout(() => {
-      let patientReply = 'The pain hasn’t eased up at all, and I feel a bit short of breath and clammy.';
-      if (simulationLanguage === 'kn') {
-        patientReply = 'ನೋವು ಸ್ವಲ್ಪವೂ ಕಡಿಮೆಯಾಗಿಲ್ಲ ಡಾಕ್ಟರ್, ಉಸಿರಾಟಕ್ಕೂ ಕಷ್ಟವಾಗ್ತಿದೆ ಮತ್ತು ಮೈಯೆಲ್ಲಾ ಬೆವರು ಬರ್ತಿದೆ.';
-      } else if (simulationLanguage === 'hi') {
-        patientReply = 'दर्द बिल्कुल कम नहीं हुआ है डॉक्टर साहब, सांस लेने में भी तकलीफ हो रही है और पसीना आ रहा है।';
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: 'patient',
-          text: patientReply,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
-    }, 1200);
+    setLanguage(newLang);
   };
 
   return (
@@ -151,7 +104,7 @@ export const Simulation: React.FC<SimulationProps> = ({ onNavigate }) => {
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-container-low border border-surface-container shadow-sm">
             <Languages className="w-3.5 h-3.5 text-primary shrink-0" />
             <select
-              value={simulationLanguage}
+              value={language}
               onChange={(e) => handleLanguageChange(e.target.value as SimLanguage)}
               aria-label="Simulation Language"
               className="bg-transparent text-xs font-semibold text-on-surface focus:outline-none cursor-pointer pr-1"
@@ -251,7 +204,7 @@ export const Simulation: React.FC<SimulationProps> = ({ onNavigate }) => {
         {/* Left Column: Patient Avatar & Telemetry Profile */}
         <div className="lg:col-span-4 flex flex-col gap-4">
           <div className="bg-surface-container-lowest rounded-2xl border border-surface-container/80 p-6 flex flex-col items-center text-center shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
-            {/* Patient Clinical Identity Avatar (Lady image removed) */}
+            {/* Patient Clinical Identity Avatar */}
             <div className="relative mb-3">
               <div className="w-24 h-24 rounded-full bg-teal-50 border-2 border-primary/20 flex items-center justify-center text-primary shadow-sm">
                 <User className="w-12 h-12 text-primary" />
@@ -284,94 +237,83 @@ export const Simulation: React.FC<SimulationProps> = ({ onNavigate }) => {
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Right Column: Interactive Consultation & Dialogue Transcript */}
         <div className="lg:col-span-8 flex flex-col gap-4">
-          <div className="bg-surface-container-lowest rounded-2xl border border-surface-container/80 shadow-[0_1px_4px_rgba(0,0,0,0.02)] p-6 flex flex-col h-[560px]">
-            {/* Header: Patient Dialogue */}
+          <div className="bg-surface-container-lowest rounded-2xl border border-surface-container/80 shadow-[0_1px_4px_rgba(0,0,0,0.02)] p-6 flex flex-col h-[580px]">
+            {/* Header: Patient Dialogue & TTS Controls */}
             <div className="flex items-center justify-between border-b border-surface-container pb-4 mb-4">
               <div className="flex items-center gap-2.5">
                 <h3 className="text-base font-bold text-on-surface font-headline">
                   Patient Dialogue
                 </h3>
                 <span className="text-xs text-outline font-medium hidden sm:inline">
-                  • Real-time verbal consultation
+                  • Verbal consultation
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-primary bg-teal-50 border border-teal-200/60 px-2.5 py-0.5 rounded-md">
-                  {languageLabels[simulationLanguage].native}
-                </span>
-                <span className="text-[11px] text-outline font-medium hidden sm:inline">
-                  Speech Engine Active
+                {/* Global Patient Voice Mute / Unmute Toggle */}
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all ${
+                    isMuted
+                      ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                      : 'bg-teal-50 text-primary border-teal-200/80 hover:bg-teal-100'
+                  }`}
+                  title={isMuted ? 'Patient voice is muted (click to unmute)' : 'Patient voice is active (click to mute)'}
+                >
+                  {isMuted ? (
+                    <>
+                      <VolumeX className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Voice Muted</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-3.5 h-3.5 text-primary" />
+                      <span>Voice Active</span>
+                    </>
+                  )}
+                </button>
+
+                <span className="text-[11px] font-semibold text-primary bg-teal-50 border border-teal-200/60 px-2.5 py-1 rounded-xl">
+                  {languageLabels[language].native}
                 </span>
               </div>
             </div>
 
             {/* Conversation Log View */}
-            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-3.5">
-              {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`flex flex-col ${
-                    msg.sender === 'doctor'
-                      ? 'items-end'
-                      : msg.sender === 'system'
-                      ? 'items-center text-center'
-                      : 'items-start'
-                  }`}
-                >
-                  {msg.sender === 'system' ? (
-                    <div className="p-2.5 bg-surface-container-low border border-surface-container rounded-xl text-[11px] text-outline max-w-md flex items-center gap-2">
-                      <AlertCircle className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span>{msg.text}</span>
-                    </div>
-                  ) : (
-                    <div
-                      className={`max-w-md rounded-2xl px-4 py-3 text-xs leading-relaxed shadow-sm ${
-                        msg.sender === 'doctor'
-                          ? 'bg-primary text-on-primary rounded-br-none'
-                          : 'bg-surface-container-low text-on-surface border border-surface-container/60 rounded-bl-none'
-                      }`}
-                    >
-                      <div className="font-semibold text-[10px] opacity-75 mb-1">
-                        {msg.sender === 'doctor' ? 'You (Doctor)' : 'Patient (Robert Henderson)'} • {msg.time}
-                      </div>
-                      {msg.text}
-                    </div>
-                  )}
-                </div>
+            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
+              {messages.map((msg) => (
+                <DialogueBubble
+                  key={msg.id}
+                  message={msg}
+                  isSpeaking={speakingMessageId === msg.id}
+                  isPaused={speakingMessageId === msg.id && speechStatus === 'paused'}
+                  isMuted={isMuted}
+                  onPlay={(id) => playMessageSpeech(id)}
+                  onPause={pauseSpeech}
+                  onResume={resumeSpeech}
+                  onStop={stopSpeech}
+                />
               ))}
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Controls */}
-            <form onSubmit={handleSendMessage} className="mt-4 pt-3 border-t border-surface-container flex items-center gap-2">
-              <button
-                type="button"
-                title="Dictate with voice"
-                className="p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface-variant transition-colors shrink-0"
-              >
-                <Mic className="w-4 h-4 text-primary" />
-              </button>
-
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={languageLabels[simulationLanguage].placeholder}
-                className="flex-1 px-4 py-2.5 bg-surface-container-low/70 border border-surface-container rounded-xl text-xs text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            {/* Student Message Input Component */}
+            <div className="mt-2">
+              <DialogueInput
+                placeholder={languageLabels[language].placeholder}
+                isProcessing={isProcessing}
+                onSend={(text) => sendMessage(text, 'text')}
+                onVoiceRecordClick={() => {
+                  // Prepared for future STT integration
+                  alert('Voice dictation (STT) will be enabled when the speech recognition engine is connected.');
+                }}
               />
-
-              <button
-                type="submit"
-                className="p-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary transition-colors shrink-0 shadow-sm"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>
