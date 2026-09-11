@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Info
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface FormErrors {
   identifier?: string;
@@ -22,7 +23,7 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ identifier?: boolean; password?: boolean }>({});
   const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'info'; text: string } | null>(null);
@@ -75,31 +76,12 @@ export const LoginForm: React.FC = () => {
     }
   };
 
+  const { login } = useAuth();
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    const idError = validateField('identifier', identifier);
-    const pwdError = validateField('password', password);
-
-    setTouched({ identifier: true, password: true });
-    setErrors({ identifier: idError, password: pwdError });
-
-    if (idError || pwdError) {
-      return;
-    }
-
-    // Client-side simulation mode
-    setIsLoading(true);
-    setFeedbackMessage(null);
-
-    // Simulate 1.2s verification latency for UI state testing
-    setTimeout(() => {
-      setIsLoading(false);
-      setFeedbackMessage({
-        type: 'success',
-        text: 'Credentials verified. Clinical simulation session initialized.'
-      });
-    }, 1200);
+    // Development mode authentication: Immediately consider authenticated and navigate
+    login(identifier, password);
   };
 
   const handleForgotPassword = (e: React.MouseEvent) => {
