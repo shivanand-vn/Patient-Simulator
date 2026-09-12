@@ -66,6 +66,3 @@ cd "f:\AI Patient Simulation Engine\Patient Simulator\backend"
 .\venv\Scripts\activate
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-
-* **Interactive API Documentation (Swagger)**: `http://localhost:8000/docs`
-* **Health Check**: `http://localhost:8000/health`
