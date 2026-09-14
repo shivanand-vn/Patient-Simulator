@@ -9,9 +9,12 @@ import {
   ArrowRight,
   AlertCircle,
   CheckCircle2,
-  Info
+  Info,
+  ChevronDown,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types/navigation';
 
 interface FormErrors {
   identifier?: string;
@@ -19,6 +22,7 @@ interface FormErrors {
 }
 
 export const LoginForm: React.FC = () => {
+  const [role, setRole] = useState<UserRole>('Student');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +39,7 @@ export const LoginForm: React.FC = () => {
     if (field === 'identifier') {
       const trimmed = value.trim();
       if (!trimmed) {
-        return 'Email or Student ID is required.';
+        return 'Email or ID is required.';
       }
       // If it contains an '@' symbol, validate standard email format
       if (trimmed.includes('@') && !emailRegex.test(trimmed)) {
@@ -80,8 +84,8 @@ export const LoginForm: React.FC = () => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Development mode authentication: Immediately consider authenticated and navigate
-    login(identifier, password);
+    // Development mode authentication: Immediately consider authenticated and navigate based on selected role
+    login(role, identifier, password);
   };
 
   const handleForgotPassword = (e: React.MouseEvent) => {
@@ -132,13 +136,43 @@ export const LoginForm: React.FC = () => {
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
-          {/* Email or Student ID Field */}
+          {/* Role Selection Field */}
+          <div>
+            <label 
+              htmlFor="role-select" 
+              className="block text-xs font-semibold text-slate-700 tracking-wide uppercase mb-1.5"
+            >
+              Role
+            </label>
+            <div className="relative rounded-lg shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <ShieldCheck className="w-4 h-4 text-clinical-850" />
+              </div>
+              <select
+                id="role-select"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value as UserRole)}
+                disabled={isLoading}
+                className="w-full pl-10 pr-9 py-2.5 text-sm bg-slate-50/75 text-slate-900 font-medium rounded-lg border border-slate-200 hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:border-clinical-800 focus:ring-clinical-800/15 cursor-pointer appearance-none transition-all duration-150"
+              >
+                <option value="Student">Student</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Admin">Admin</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+
+          {/* Email or ID Field */}
           <div>
             <label 
               htmlFor="identifier" 
               className="block text-xs font-semibold text-slate-700 tracking-wide uppercase mb-1.5"
             >
-              Email or Student ID
+              {role === 'Student' ? 'Email or Student ID' : role === 'Faculty' ? 'Faculty Email / ID' : 'Administrator Email / ID'}
             </label>
             <div className="relative rounded-lg shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -153,7 +187,13 @@ export const LoginForm: React.FC = () => {
                 onChange={handleIdentifierChange}
                 onBlur={() => handleBlur('identifier')}
                 disabled={isLoading}
-                placeholder="Enter your email or student ID"
+                placeholder={
+                  role === 'Student' 
+                    ? 'Enter your email or student ID' 
+                    : role === 'Faculty' 
+                    ? 'Enter faculty email (e.g. m.chen@medsim.edu)' 
+                    : 'Enter admin email (e.g. a.vance@medsim.edu)'
+                }
                 aria-invalid={errors.identifier ? 'true' : 'false'}
                 aria-describedby={errors.identifier ? 'identifier-error' : undefined}
                 className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50/75 text-slate-900 placeholder:text-slate-400 rounded-lg border transition-all duration-150 focus:bg-white focus:outline-none focus:ring-2 disabled:bg-slate-100 disabled:cursor-not-allowed ${

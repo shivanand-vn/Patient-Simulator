@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { UserProfile } from '../types/navigation';
+import { UserProfile, UserRole } from '../types/navigation';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: UserProfile;
-  login: (identifier?: string, password?: string) => void;
+  login: (role?: UserRole, identifier?: string, password?: string) => void;
   logout: () => void;
   updateUser: (updated: Partial<UserProfile>) => void;
 }
@@ -23,14 +23,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<UserProfile>(defaultUser);
 
-  // Development mode: Allow sign-in with empty fields or any values immediately
-  const login = (identifier?: string, _password?: string) => {
-    if (identifier && identifier.trim()) {
-      setUser((prev) => ({
-        ...prev,
-        name: identifier.includes('@') ? identifier.split('@')[0] : identifier
-      }));
+  // Development mode: Allow sign-in with role and optional identifier
+  const login = (role: UserRole = 'Student', identifier?: string, _password?: string) => {
+    let baseUser: UserProfile;
+
+    if (role === 'Admin') {
+      baseUser = {
+        name: 'Dr. A. Vance',
+        role: 'Admin',
+        email: 'a.vance@medsim.edu',
+        phone: '+1 (555) 019-2834',
+        institution: 'Bangalore Medical College & Research Institute'
+      };
+    } else if (role === 'Faculty') {
+      baseUser = {
+        name: 'Dr. Marcus Chen',
+        role: 'Faculty',
+        email: 'm.chen@medsim.edu',
+        phone: '+1 (555) 234-8901',
+        institution: 'Bangalore Medical College & Research Institute'
+      };
+    } else {
+      baseUser = {
+        name: 'Dr. Alex Mercer',
+        role: 'Student',
+        email: 'alex.mercer@hospital.edu',
+        phone: '+1 (410) 555-0192',
+        institution: 'Bangalore Medical College & Research Institute'
+      };
     }
+
+    if (identifier && identifier.trim()) {
+      baseUser.name = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+      baseUser.email = identifier;
+    }
+
+    setUser(baseUser);
     setIsAuthenticated(true);
   };
 
@@ -59,3 +87,5 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+export default AuthContext;
