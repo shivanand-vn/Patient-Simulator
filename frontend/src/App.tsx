@@ -12,9 +12,11 @@ import Settings from './pages/Settings';
 import HelpSupport from './pages/HelpSupport';
 import { Sidebar } from './components/common/Sidebar';
 import { Header } from './components/common/Header';
+import { AdminLayout } from './components/admin/AdminLayout';
+import { FacultyPortal } from './pages/FacultyPortal';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -22,6 +24,17 @@ const AppContent: React.FC = () => {
     return <Login />;
   }
 
+  // Role-based routing: Admin
+  if (user.role === 'Admin') {
+    return <AdminLayout />;
+  }
+
+  // Role-based routing: Faculty
+  if (user.role === 'Faculty') {
+    return <FacultyPortal />;
+  }
+
+  // Existing Student Dashboard & Navigation (Preserved 100%)
   const renderActiveTab = () => {
     switch (currentTab) {
       case 'dashboard':
