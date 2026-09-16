@@ -1,160 +1,158 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  GraduationCap, 
-  Users, 
-  ClipboardCheck, 
-  LogOut, 
-  Clock, 
-  ArrowRight 
+  LayoutDashboard, 
+  LogOut,
+  GraduationCap
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const FacultyPortal: React.FC = () => {
   const { user, logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
-    <div className="min-h-screen w-full bg-surface text-on-surface flex flex-col">
-      {/* Top Header */}
-      <header className="h-16 bg-surface-container-lowest border-b border-surface-container px-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-primary">
-            <GraduationCap className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="font-semibold text-sm text-primary tracking-tight font-headline">
+    <div className="min-h-screen w-full bg-surface text-on-surface">
+      {/* Fixed Left Navigation Sidebar for Faculty (Directly visible on desktop) */}
+      <aside className="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between py-6 px-4 select-none border-r border-surface-container">
+        <div className="flex flex-col gap-8">
+          {/* Brand Header */}
+          <div className="px-2">
+            <h1 className="font-semibold text-base text-primary tracking-tight font-headline">
               AI Patient Simulation Engine
             </h1>
-            <span className="text-[11px] text-teal-800 font-semibold uppercase tracking-wider">
-              Faculty Evaluation Portal
+            <span className="text-xs text-outline font-medium">Faculty Portal</span>
+          </div>
+
+          {/* Navigation Section */}
+          <div className="flex flex-col gap-1">
+            <span className="px-2 text-[11px] font-semibold text-outline uppercase tracking-wider mb-1">
+              Main
             </span>
+            <nav className="flex flex-col gap-1">
+              <button
+                type="button"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold bg-primary-container text-on-primary-container shadow-sm text-left w-full cursor-default"
+              >
+                <LayoutDashboard className="w-5 h-5 shrink-0" />
+                <span>Dashboard</span>
+              </button>
+            </nav>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-7 h-7 rounded-full bg-teal-100 text-teal-800 font-bold flex items-center justify-center text-xs">
-              MC
+        {/* Bottom Section: Profile & Logout */}
+        <div className="flex flex-col gap-3 pt-4 border-t border-surface-container">
+          {/* Faculty User Pill */}
+          <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl bg-surface-container-lowest border border-surface-container/70 shadow-xs">
+            <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center shrink-0 border border-teal-200">
+              {user.name ? user.name.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2) : 'MC'}
             </div>
-            <div className="flex flex-col text-left">
-              <span className="font-bold text-on-surface">{user.name || 'Dr. Marcus Chen'}</span>
-              <span className="text-[10px] text-outline font-medium">Cardiology Faculty Lead</span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-bold text-on-surface truncate">
+                {user.name || 'Dr. Marcus Chen'}
+              </span>
+              <span className="text-[10px] text-outline truncate font-medium">
+                Faculty
+              </span>
             </div>
           </div>
 
+          {/* Logout Button */}
           <button
             type="button"
-            onClick={logout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+            onClick={() => setShowLogoutConfirm(true)}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all text-left group"
           >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            <LogOut className="w-5 h-5 shrink-0 text-red-500 group-hover:text-red-700 transition-colors" />
+            <span className="font-semibold">Logout</span>
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-8 flex flex-col gap-6 animate-fadeIn">
-        {/* Banner */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-surface-container/90 p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 mb-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>OSCE Evaluator Terminal Online</span>
+      {/* Main Layout Area shifted by sidebar width (72 = 18rem = 288px) */}
+      <div className="pl-72 flex flex-col min-h-screen">
+        {/* Top Fixed Header Bar */}
+        <header className="fixed top-0 left-72 right-0 h-16 bg-surface/85 backdrop-blur-xl border-b border-surface-container/60 shadow-[0_1px_8px_rgba(0,0,0,0.02)] z-40 flex items-center justify-between px-8">
+          <div className="flex items-center gap-2 text-xs text-outline">
+            <GraduationCap className="w-4 h-4 text-primary" />
+            <span className="font-medium">Faculty Portal</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-surface-container/80 text-on-surface">
+              <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-[11px] flex items-center justify-center">
+                {user.name ? user.name.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2) : 'MC'}
+              </div>
+              <span className="text-xs font-semibold text-on-surface">
+                {user.name || 'Dr. Marcus Chen'}
+              </span>
             </div>
-            <h2 className="text-xl font-bold text-on-surface font-headline">
-              Welcome, {user.name || 'Dr. Marcus Chen'}
-            </h2>
-            <p className="text-xs sm:text-sm text-outline mt-1 max-w-xl">
-              Faculty clinical evaluation terminal. Review assigned simulation cases, monitor active candidate cohorts, and complete OSCE assessment rubrics.
+          </div>
+        </header>
+
+        {/* Main Content: Clean and Centered */}
+        <main className="flex-1 pt-16 flex items-center justify-center p-8">
+          <div className="text-center flex flex-col items-center justify-center animate-fadeIn">
+            <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-headline mb-2">
+              Faculty Dashboard
+            </h1>
+            <p className="text-sm sm:text-base text-outline font-medium">
+              Under Development
             </p>
           </div>
+        </main>
+      </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <span className="px-3 py-1.5 rounded-xl bg-teal-50 text-teal-800 border border-teal-200 text-xs font-semibold">
-              Assigned: Case-001 (Cardiology)
-            </span>
-          </div>
-        </div>
-
-        {/* Assigned Cohorts & Upcoming Evaluations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-surface-container-lowest rounded-2xl border border-surface-container/90 p-5 shadow-xs flex flex-col justify-between gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-outline uppercase font-mono">
-                  UPCOMING OSCE EVALUATION
-                </span>
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-                  Scheduled
-                </span>
+      {/* Logout Confirmation Dialog Modal */}
+      {showLogoutConfirm && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn"
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <div 
+            className="bg-surface-container-lowest border border-surface-container/80 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4 text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600 shrink-0">
+                <LogOut className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-on-surface font-headline">
-                Chest Pain Assessment (CASE-001)
-              </h3>
-              <p className="text-xs text-outline mt-1">
-                Batch 2026 - Year 3 Clinicals (59 candidates enrolled)
-              </p>
-
-              <div className="mt-4 p-3 bg-surface-container-low rounded-xl flex flex-col gap-1.5 text-xs">
-                <div className="flex items-center gap-2 text-on-surface font-medium">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
-                  <span>18 Sep 2026 • 10:00 AM EST (Sim Center A - Rig 3)</span>
-                </div>
-                <div className="flex items-center gap-2 text-outline">
-                  <Users className="w-3.5 h-3.5 text-outline" />
-                  <span>Lead Evaluator Assigned</span>
-                </div>
+              <div className="flex flex-col">
+                <h3 className="text-base font-bold text-on-surface font-headline">
+                  Confirm Logout
+                </h3>
+                <p className="text-xs text-outline mt-0.5">
+                  End faculty session
+                </p>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-surface-container/60 flex items-center justify-between">
-              <span className="text-xs text-outline font-mono">Standardized OSCE Rubric v2</span>
+            <p className="text-sm text-on-surface-variant leading-relaxed">
+              Are you sure you want to log out from the Faculty portal?
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-surface-container/60">
               <button
                 type="button"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary-container text-on-primary transition-colors"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high transition-colors"
               >
-                <span>Launch Rubric Evaluator</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                Cancel
               </button>
-            </div>
-          </div>
-
-          <div className="bg-surface-container-lowest rounded-2xl border border-surface-container/90 p-5 shadow-xs flex flex-col justify-between gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-outline uppercase font-mono">
-                  PORTAL STATUS
-                </span>
-                <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded">
-                  Active
-                </span>
-              </div>
-              <h3 className="text-base font-bold text-on-surface font-headline">
-                Faculty Debriefing & Scoring
-              </h3>
-              <p className="text-xs text-outline mt-1">
-                Clinical evaluation tools, live OSCE observation dashboards, and debriefing notes modules are being integrated.
-              </p>
-
-              <div className="mt-4 p-3 bg-teal-50/60 border border-teal-100 rounded-xl flex items-center gap-2.5 text-xs text-teal-900">
-                <ClipboardCheck className="w-4 h-4 text-teal-700 shrink-0" />
-                <span>Examinations and timetable schedules are managed centrally by the Administrator.</span>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-surface-container/60 flex items-center justify-between">
-              <span className="text-xs text-outline">Role: Faculty</span>
               <button
                 type="button"
-                onClick={logout}
-                className="text-xs text-primary font-semibold hover:underline"
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors shadow-sm"
               >
-                Switch Role / Logout
+                Yes, Log Out
               </button>
             </div>
           </div>
         </div>
-      </main>
+      )}
     </div>
   );
 };
