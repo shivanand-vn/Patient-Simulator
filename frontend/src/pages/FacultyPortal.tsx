@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
   LogOut,
-  GraduationCap
+  GraduationCap,
+  HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const FacultyPortal: React.FC = () => {
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'help-support'>('dashboard');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
@@ -31,7 +33,12 @@ export const FacultyPortal: React.FC = () => {
             <nav className="flex flex-col gap-1">
               <button
                 type="button"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold bg-primary-container text-on-primary-container shadow-sm text-left w-full cursor-default"
+                onClick={() => setActiveTab('dashboard')}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-all text-left w-full ${
+                  activeTab === 'dashboard'
+                    ? 'bg-primary-container text-on-primary-container shadow-sm'
+                    : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                }`}
               >
                 <LayoutDashboard className="w-5 h-5 shrink-0" />
                 <span>Dashboard</span>
@@ -40,24 +47,23 @@ export const FacultyPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Section: Profile & Logout */}
-        <div className="flex flex-col gap-3 pt-4 border-t border-surface-container">
-          {/* Faculty User Pill */}
-          <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl bg-surface-container-lowest border border-surface-container/70 shadow-xs">
-            <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center shrink-0 border border-teal-200">
-              {user.name ? user.name.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2) : 'MC'}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-on-surface truncate">
-                {user.name || 'Dr. Marcus Chen'}
-              </span>
-              <span className="text-[10px] text-outline truncate font-medium">
-                Faculty
-              </span>
-            </div>
-          </div>
+        {/* Footer Section */}
+        <div className="flex flex-col gap-2 pt-4 border-t border-surface-container">
+          {/* Help & Support */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('help-support')}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+              activeTab === 'help-support'
+                ? 'bg-primary-container text-on-primary-container font-semibold shadow-sm'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+            }`}
+          >
+            <HelpCircle className="w-5 h-5 shrink-0" />
+            <span>Help & Support</span>
+          </button>
 
-          {/* Logout Button */}
+          {/* Logout Button below Help & Support */}
           <button
             type="button"
             onClick={() => setShowLogoutConfirm(true)}
@@ -76,30 +82,52 @@ export const FacultyPortal: React.FC = () => {
           <div className="flex items-center gap-2 text-xs text-outline">
             <GraduationCap className="w-4 h-4 text-primary" />
             <span className="font-medium">Faculty Portal</span>
+            {activeTab === 'help-support' && (
+              <>
+                <span className="text-outline/40">/</span>
+                <span className="text-on-surface font-semibold">Help & Support</span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-surface-container/80 text-on-surface">
-              <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-[11px] flex items-center justify-center">
+            <div className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-full border border-surface-container/80 text-on-surface">
+              <div className="w-7 h-7 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center border border-teal-200 shadow-xs">
                 {user.name ? user.name.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2) : 'MC'}
               </div>
-              <span className="text-xs font-semibold text-on-surface">
-                {user.name || 'Dr. Marcus Chen'}
-              </span>
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-semibold text-on-surface leading-tight">
+                  {user.name || 'Dr. Marcus Chen'}
+                </span>
+                <span className="text-[10px] text-outline font-medium leading-tight">
+                  Faculty
+                </span>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Main Content: Clean and Centered */}
         <main className="flex-1 pt-16 flex items-center justify-center p-8">
-          <div className="text-center flex flex-col items-center justify-center animate-fadeIn">
-            <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-headline mb-2">
-              Faculty Dashboard
-            </h1>
-            <p className="text-sm sm:text-base text-outline font-medium">
-              Under Development
-            </p>
-          </div>
+          {activeTab === 'dashboard' ? (
+            <div className="text-center flex flex-col items-center justify-center animate-fadeIn">
+              <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-headline mb-2">
+                Faculty Dashboard
+              </h1>
+              <p className="text-sm sm:text-base text-outline font-medium">
+                Under Development
+              </p>
+            </div>
+          ) : (
+            <div className="text-center flex flex-col items-center justify-center animate-fadeIn">
+              <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-headline mb-2">
+                Help & Support
+              </h1>
+              <p className="text-sm sm:text-base text-outline font-medium">
+                Under Development
+              </p>
+            </div>
+          )}
         </main>
       </div>
 
