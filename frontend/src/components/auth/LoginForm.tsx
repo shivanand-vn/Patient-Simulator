@@ -22,7 +22,7 @@ interface FormErrors {
 }
 
 export const LoginForm: React.FC = () => {
-  const [role, setRole] = useState<UserRole>('Nurse');
+  const [role, setRole] = useState<UserRole>('Student');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -156,8 +156,8 @@ export const LoginForm: React.FC = () => {
                 disabled={isLoading}
                 className="w-full pl-10 pr-9 py-2.5 text-sm bg-slate-50/75 text-slate-900 font-medium rounded-lg border border-slate-200 hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:border-clinical-800 focus:ring-clinical-800/15 cursor-pointer appearance-none transition-all duration-150"
               >
-                <option value="Nurse">Nurse (Student)</option>
-                <option value="Doctor">Doctor (Faculty)</option>
+                <option value="Student">Student</option>
+                <option value="Faculty">Faculty</option>
                 <option value="Admin">Admin</option>
               </select>
               <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
@@ -172,7 +172,7 @@ export const LoginForm: React.FC = () => {
               htmlFor="identifier" 
               className="block text-xs font-semibold text-slate-700 tracking-wide uppercase mb-1.5"
             >
-              {role === 'Nurse' || role === 'Student' ? 'Email or Nurse (Student) ID' : role === 'Doctor' || role === 'Faculty' ? 'Doctor (Faculty) Email / ID' : 'Administrator Email / ID'}
+              {role === 'Student' ? 'Email or Student ID' : role === 'Faculty' ? 'Faculty Email / ID' : 'Administrator Email / ID'}
             </label>
             <div className="relative rounded-lg shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -188,11 +188,11 @@ export const LoginForm: React.FC = () => {
                 onBlur={() => handleBlur('identifier')}
                 disabled={isLoading}
                 placeholder={
-                  role === 'Nurse' || role === 'Student' 
-                    ? 'Enter your email or Nurse (Student) ID (e.g. student.med2026@bmcri.edu.in)' 
-                    : role === 'Doctor' || role === 'Faculty' 
-                    ? 'Enter Doctor (Faculty) email (e.g. faculty.cardio@bmcri.edu.in)' 
-                    : 'Enter admin email (e.g. admin@bmcri.edu.in)'
+                  role === 'Student' 
+                    ? 'Enter your email or student ID' 
+                    : role === 'Faculty' 
+                    ? 'Enter faculty email (e.g. m.chen@medsim.edu)' 
+                    : 'Enter admin email (e.g. a.vance@medsim.edu)'
                 }
                 aria-invalid={errors.identifier ? 'true' : 'false'}
                 aria-describedby={errors.identifier ? 'identifier-error' : undefined}

@@ -1,4 +1,4 @@
-export type UserRole = 'Nurse' | 'Doctor' | 'Admin' | 'Student' | 'Faculty';
+export type UserRole = 'Student' | 'Faculty' | 'Admin';
 
 export type NavTab = 
   | 'dashboard'
