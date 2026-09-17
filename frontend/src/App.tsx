@@ -29,12 +29,12 @@ const AppContent: React.FC = () => {
     return <AdminLayout />;
   }
 
-  // Role-based routing: Faculty
-  if (user.role === 'Faculty') {
+  // Role-based routing: Doctor / Faculty
+  if (user.role === 'Doctor' || user.role === 'Faculty') {
     return <FacultyPortal />;
   }
 
-  // Existing Student Dashboard & Navigation (Preserved 100%)
+  // Nurse Dashboard & Navigation
   const renderActiveTab = () => {
     switch (currentTab) {
       case 'dashboard':
