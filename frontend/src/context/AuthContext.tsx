@@ -10,9 +10,9 @@ interface AuthContextType {
 }
 
 const defaultUser: UserProfile = {
-  name: 'Dr. Alex Mercer',
-  role: 'Student',
-  email: 'alex.mercer@hospital.edu',
+  name: 'Nurse Aditi Sharma',
+  role: 'Nurse',
+  email: 'nurse.aditi@hospital.edu',
   phone: '+1 (410) 555-0192',
   institution: 'Bangalore Medical College & Research Institute'
 };
@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<UserProfile>(defaultUser);
 
   // Development mode: Allow sign-in with role and optional identifier
-  const login = (role: UserRole = 'Student', identifier?: string, _password?: string) => {
+  const login = (role: UserRole = 'Nurse', identifier?: string, _password?: string) => {
     let baseUser: UserProfile;
 
     if (role === 'Admin') {
@@ -35,19 +35,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         phone: '+1 (555) 019-2834',
         institution: 'Bangalore Medical College & Research Institute'
       };
-    } else if (role === 'Faculty') {
+    } else if (role === 'Doctor' || role === 'Faculty') {
       baseUser = {
-        name: 'Dr. Marcus Chen',
-        role: 'Faculty',
-        email: 'm.chen@medsim.edu',
+        name: 'Dr. Ramesh Kumar',
+        role: 'Doctor',
+        email: 'faculty.cardio@bmcri.edu.in',
         phone: '+1 (555) 234-8901',
         institution: 'Bangalore Medical College & Research Institute'
       };
     } else {
       baseUser = {
-        name: 'Dr. Alex Mercer',
-        role: 'Student',
-        email: 'alex.mercer@hospital.edu',
+        name: 'Nurse Aditi Sharma',
+        role: 'Nurse',
+        email: 'student.med2026@bmcri.edu.in',
         phone: '+1 (410) 555-0192',
         institution: 'Bangalore Medical College & Research Institute'
       };
