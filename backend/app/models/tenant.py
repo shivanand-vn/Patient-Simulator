@@ -39,6 +39,8 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name="user_role", schema="tenant"), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    contact_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     preferred_language: Mapped[str] = mapped_column(String(10), default="en", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.clock_timestamp())

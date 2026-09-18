@@ -1,6 +1,8 @@
 from app.models.base import Base
 from app.models.tenant import Institution, User, Cohort, UserRole
+from app.models.academic import Batch, Student
 from app.models.clinical import Case, CaseVersion, PatientPersona, ClinicalTruthModel, ScenarioState, CaseStatus, DifficultyLevel
+from app.models.examination import ExamSchedule, StudentAssessment, VitalSignsRecord
 from app.models.simulation import SimulationSession, ConversationTurn, SessionVitalsLog, SessionAction, SessionStatus
 from app.models.assessment import ScoringRubric, SessionEvaluation
 from app.models.audit import SecurityAuditLog
@@ -11,6 +13,8 @@ __all__ = [
     "User",
     "Cohort",
     "UserRole",
+    "Batch",
+    "Student",
     "Case",
     "CaseVersion",
     "PatientPersona",
@@ -18,6 +22,9 @@ __all__ = [
     "ScenarioState",
     "CaseStatus",
     "DifficultyLevel",
+    "ExamSchedule",
+    "StudentAssessment",
+    "VitalSignsRecord",
     "SimulationSession",
     "ConversationTurn",
     "SessionVitalsLog",

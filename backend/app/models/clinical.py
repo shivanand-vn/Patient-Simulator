@@ -28,7 +28,21 @@ class Case(Base):
     case_code: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     medical_specialty: Mapped[str] = mapped_column(String(100), nullable=False)
+    category: Mapped[str] = mapped_column(String(100), default="Cardiology", nullable=False) # Cardiology, Respiratory
     difficulty: Mapped[DifficultyLevel] = mapped_column(SQLEnum(DifficultyLevel, name="difficulty_level", schema="clinical"), default=DifficultyLevel.INTERMEDIATE, nullable=False)
+    
+    # Doctor & Patient Demographics
+    doctor_name: Mapped[str] = mapped_column(String(255), default="Attending Physician", nullable=False)
+    patient_name: Mapped[str] = mapped_column(String(150), default="Patient", nullable=False)
+    patient_age: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
+    patient_gender: Mapped[str] = mapped_column(String(20), default="Male", nullable=False)
+    chief_complaint: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    
+    # Target Vitals & Reference Ranges
+    target_vitals: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    vital_reference_ranges: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    predefined_assessment_order: Mapped[list] = mapped_column(JSONB, default=list, nullable=False)
+
     created_by: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("tenant.users.user_id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.clock_timestamp())
 
