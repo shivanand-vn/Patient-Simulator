@@ -30,7 +30,7 @@ DB_NAME = os.getenv("POSTGRES_DB", "ai_patient_simulation")
 
 async def init_and_seed_db():
     print("==================================================================")
-    print("  AI Patient Simulation Engine — Automated Local DB Setup")
+    print("  AI Patient Simulation Engine — Comprehensive Local DB Setup")
     print("==================================================================")
     print(f"Connecting to local PostgreSQL on {PG_HOST}:{PG_PORT} as user '{PG_USER}'...")
 
@@ -108,30 +108,35 @@ async def init_and_seed_db():
 
     # 6. Execute Seed for Admin, Faculty, Batches, and Schedules
     if SEED_ADMIN_EXAM_PATH.exists():
-        print("\nSeeding Admin, Faculty, Batches (with backlogs), and Scheduled Exams...")
+        print("\nSeeding Admin, Multi-Specialty Faculty, Batches, Students, and Exam Schedules...")
         with open(SEED_ADMIN_EXAM_PATH, "r", encoding="utf-8") as f:
             admin_seed_sql = f.read()
         try:
             await app_conn.execute(admin_seed_sql)
-            print("✓ Admin, Faculty with contact/password flag, Batches, Students, and Exam Schedules seeded!")
+            print("✓ Rich multi-specialty clinical cases, batches, and exam schedules successfully seeded!")
         except Exception as e:
             print(f"[NOTE] admin seed notice: {e}")
 
-    # 7. Verify counts
-    cases_count = await app_conn.fetchval("SELECT COUNT(*) FROM clinical.cases")
-    users_count = await app_conn.fetchval("SELECT COUNT(*) FROM tenant.users")
+    # 7. Verification Breakdown
+    faculty_count = await app_conn.fetchval("SELECT COUNT(*) FROM tenant.users WHERE role = 'FACULTY'")
     batches_count = await app_conn.fetchval("SELECT COUNT(*) FROM academic.batches")
-    students_count = await app_conn.fetchval("SELECT COUNT(*) FROM academic.students")
+    students_total = await app_conn.fetchval("SELECT COUNT(*) FROM academic.students")
+    students_backlog = await app_conn.fetchval("SELECT COUNT(*) FROM academic.students WHERE is_backlog = TRUE")
+    cases_count = await app_conn.fetchval("SELECT COUNT(*) FROM clinical.cases")
     schedules_count = await app_conn.fetchval("SELECT COUNT(*) FROM examination.exam_schedules")
+    assessments_count = await app_conn.fetchval("SELECT COUNT(*) FROM examination.student_assessments")
 
-    print("\n--- DATABASE VERIFICATION ---")
-    print(f"Total Users:              {users_count}")
-    print(f"Total Batches:            {batches_count}")
-    print(f"Total Enrolled Students:  {students_count}")
-    print(f"Total Clinical Cases:     {cases_count}")
-    print(f"Scheduled Examinations:   {schedules_count}")
-    print("-----------------------------")
-    print("\nDatabase is fully configured and ready for the Admin, Faculty, and Exam workflow!\n")
+    print("\n==================================================================")
+    print("                    DATABASE VERIFICATION REPORT                  ")
+    print("==================================================================")
+    print(f"  • Faculty Members:          {faculty_count} (Cardio, Resp, EM, Medicine)")
+    print(f"  • Student Batches:          {batches_count} (Regular, Supplementary, PG)")
+    print(f"  • Enrolled Students:        {students_total} total ({students_backlog} Backlog/Remedial)")
+    print(f"  • Clinical Cases:           {cases_count} (Cardiology & Respiratory with Vitals)")
+    print(f"  • Scheduled Examinations:   {schedules_count} (Bound: Batch+Case+Faculty+Date+Time)")
+    print(f"  • Active/Completed Exams:   {assessments_count} (with 4-Step Vital Signs Records)")
+    print("==================================================================")
+    print("✓ Local database is fully seeded and ready for Admin, Faculty, and Student testing!\n")
 
     await app_conn.close()
 
