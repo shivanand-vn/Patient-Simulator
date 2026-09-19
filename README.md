@@ -1,10 +1,47 @@
 # AI Patient Simulation Engine (Local Desktop Architecture)
 
-All application data and patient simulation models are stored and executed **100% locally on your machine**. No cloud services or external Docker containers are required.
+All application data and patient simulation models are stored and executed **100% locally on your machine**. No external cloud services or Docker containers are required.
 
 The system consists of two primary parts:
 1. **Python FastAPI Backend** (`backend/`): Handles clinical simulation state machines, database persistence, REST endpoints, and WebSocket connections.
 2. **Tauri + React Desktop Application** (`frontend/`): Native desktop interface built with React, Vite, Tailwind CSS, and compiled using Rust + Microsoft Visual Studio C++ Build Tools.
+
+---
+
+## System Workflows & Core Modules
+
+```mermaid
+flowchart LR
+    Admin["Admin"] -->|Add/Manage| Faculty["Faculty Members"]
+    Admin -->|Create ~59 cap| Batches["Batches & Students (w/ Backlogs)"]
+    Admin -->|Manage| Cases["Clinical Cases (Doctor + Vitals)"]
+    Admin -->|Schedule| Exam["Exam Schedule (Batch + Case + Faculty + Date + Time)"]
+    Exam -->|Assigned To| FacView["Faculty Dashboard (Read-Only)"]
+    FacView -->|Supervises| StudentExam["Student Clinical Encounter"]
+    StudentExam -->|Step 1 to 7| Checklist["Predefined Assessment Order"]
+    Checklist -->|Sequential 1 to 4| Vitals["Vitals: BP → Pulse → SpO2 → Temp"]
+    Vitals -->|Scored & Logged| Completion["Assessment Completed & Scorecard"]
+```
+
+### 1. Admin Module
+* **Faculty Management**: Admin adds faculty with **Name, Email ID, Contact Number**, and a default password. Email serves as login ID. Faculty must change password on first login.
+* **Batch Management**: Admin creates and manages batches (capacity ~59 students). Supports student enrollment with **Student ID (USN), Name, Year of Joining**, and explicit **Backlog student tracking**.
+* **Clinical Case Management**: Cases across medical specialties (**Cardiology, Respiratory, Emergency Medicine**), each having unique Case IDs, Doctor's Name, Patient Demographics, Chief Complaint, Target Vitals, Reference Ranges, and Predefined Assessment Sequence.
+* **Exam Scheduling Engine**: Admin binds **Batch + Case + Faculty + Exam Date + Exam Time** into official exam sessions.
+
+### 2. Faculty Module
+* **Assigned Examinations**: Faculty logs in and views examinations assigned by Admin. Read-only view (Batch, Case, Date, Time, Doctor Name, Patient Name). Empty state if no exams assigned.
+* **Password Management**: Faculty can securely change their password upon first login.
+
+### 3. Student Assessment & Sequential Vital Signs
+* **Structured Clinical Encounter**: Records Student ID and Case ID. Displays Patient Name, Age, Gender, Doctor's Name, and Chief Complaint.
+* **Predefined Assessment Checklist**: Enforces a 7-step clinical sequence.
+* **Strict 4-Step Vital Signs Order**:
+  1. **Blood Pressure (BP)** *(Normal range: 90–120 / 60–80 mmHg)*
+  2. **Pulse Rate** *(Normal range: 60–100 bpm)*
+  3. **Oxygen Saturation ($\text{SpO}_2$)** *(Normal range: 95–100%)*
+  4. **Temperature** *(Normal range: 36.5–37.5°C)*
+* Evaluates recorded vitals against case targets and logs sequence completion with competency scorecards.
 
 ---
 
@@ -73,14 +110,21 @@ Open `backend/.env` in VS Code or Notepad and verify:
 * `DATABASE_URL`: Ensure credentials match your PostgreSQL instance (e.g. `postgresql+asyncpg://postgres:YOUR_PASSWORD@localhost:5432/ai_patient_simulation`).
 
 ### Step 2.4: Initialize and Seed the Database
-Run the automated database initializer and seeder:
+Run the comprehensive automated database initializer and seeder:
 ```powershell
 python seed.py
 ```
-This script automatically:
-* Creates the `ai_patient_simulation` database.
-* Configures all 5 logical schemas (`tenant`, `clinical`, `simulation`, `assessment`, `audit`).
-* Seeds clinical cases, patient personas, rubrics, institutions, and test users.
+
+This automated script applies:
+1. Baseline Schemas (`tenant`, `clinical`, `simulation`, `assessment`, `audit`) from `init.sql`.
+2. Migration 02 (`academic` and `examination` schemas, batch capacity, backlog flags, exam schedules).
+3. Comprehensive test data seeding:
+   * **5 Faculty Members** across Cardiology, Pulmonology, Emergency Medicine, and Internal Medicine.
+   * **4 Batches** (`2026 MBBS Batch A`, `Batch B`, `2025 Supplementary / Backlog Batch`, `PG EM Residents`).
+   * **18+ Enrolled Students** with USNs and explicit Backlog tracking (`BMC2025044`, `BMC2025052`, `BMC2024018`, etc.).
+   * **4 Clinical Cases** with Doctor's names, patient demographics, chief complaints, target vitals, and reference ranges.
+   * **5 Scheduled Examinations** binding Batch + Case + Faculty + Date + Time.
+   * **Sample Completed Student Assessment** with sequential vital signs records.
 
 ### Step 2.5: Start the Backend Server
 ```powershell
@@ -96,80 +140,82 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-## 3. Frontend Setup (Tauri Desktop Application)
+## 3. Pre-Configured Test Credentials & Datasets
+
+Once the database is seeded (`python seed.py`), the following credentials are ready for use:
+
+### Test User Logins:
+| Role | Email | Password | Contact Number | Notes |
+|---|---|---|---|---|
+| **System Admin** | `admin@bmcri.edu.in` | `password123` | `+91 98450 12345` | Full system management & scheduling |
+| **Faculty (Cardiology)** | `faculty.cardio@bmcri.edu.in` | `password123` | `+91 98451 23456` | Prompts password change on 1st login |
+| **Faculty (Pulmonology)**| `faculty.resp@bmcri.edu.in` | `password123` | `+91 98452 34567` | Prompts password change on 1st login |
+| **Faculty (Emergency Med)**| `faculty.em@bmcri.edu.in` | `password123` | `+91 98453 45678` | Prompts password change on 1st login |
+| **Faculty (Internal Med)**| `faculty.med@bmcri.edu.in` | `password123` | `+91 98454 56789` | Prompts password change on 1st login |
+| **Student (Regular)** | `student.med2026@bmcri.edu.in` | `password123` | `+91 91234 56701` | Aditi Sharma (`BMC2026001`) |
+| **Student (Backlog)** | `kavya.n@student.bmcri.edu.in` | `password123` | `+91 91234 56703` | Kavya Nair (`BMC2025044`) |
+
+### Pre-Configured Clinical Cases:
+1. **`CASE-CARD-001`**: *Acute Anterior STEMI (Cardiology)*
+   * Patient: Ramesh Gowda, 58yo Male | Doctor: Dr. Ramesh Kumar (Cardiologist)
+   * Vitals: BP 145/95 mmHg, Pulse 104 bpm, $\text{SpO}_2$ 93%, Temp 37.1°C
+2. **`CASE-RESP-002`**: *Acute Severe Asthma Exacerbation (Respiratory)*
+   * Patient: Pooja Nair, 24yo Female | Doctor: Dr. Sunita Rao (Pulmonologist)
+   * Vitals: BP 130/82 mmHg, Pulse 118 bpm, $\text{SpO}_2$ 90%, Temp 36.8°C
+3. **`CASE-CARD-003`**: *Hypertensive Crisis with Acute Pulmonary Edema (Cardiology / EM)*
+   * Patient: Venkatesh Rao, 66yo Male | Doctor: Dr. Anand Kulkarni (Emergency Medicine)
+   * Vitals: BP 210/120 mmHg, Pulse 110 bpm, $\text{SpO}_2$ 88%, Temp 37.0°C
+4. **`CASE-RESP-004`**: *Severe Community-Acquired Pneumonia with Septic Shock (Respiratory / Critical Care)*
+   * Patient: Meenakshi Sundaram, 49yo Female | Doctor: Dr. Priya Sharma (Internal Medicine)
+   * Vitals: BP 88/56 mmHg, Pulse 124 bpm, $\text{SpO}_2$ 89%, Temp 39.2°C
+
+---
+
+## 4. Frontend Setup (Tauri Desktop Application)
 
 The frontend is a **React + Vite** app wrapped in **Tauri**, which compiles into a native Windows `.exe`.
 
-### Step 3.1: Install Desktop Build Prerequisites
-
-1. **Microsoft Visual Studio C++ Build Tools**:
-   * Install via Visual Studio Installer.
-   * Make sure **Desktop development with C++** is checked.
-2. **Rust Toolchain**:
-   ```powershell
-   winget install Rustlang.Rustup
-   ```
-   *After installation, restart your terminal or refresh PATH: `$env:Path = "$HOME\.cargo\bin;$env:Path"`.*
-
-### Step 3.2: Automated Setup (Recommended)
-You can automatically check prerequisites and install packages by running the included setup script:
-```powershell
-cd "f:\AI Patient Simulation Engine\Patient-Simulator\frontend"
-.\setup.ps1
-```
-
-### Step 3.3: Manual Installation (Alternative)
-If you prefer running manual commands:
+### Step 4.1: Install Dependencies
 ```powershell
 cd "f:\AI Patient Simulation Engine\Patient-Simulator\frontend"
 npm install --legacy-peer-deps
 ```
 
-### Step 3.4: Launch the Desktop Application
+### Step 4.2: Launch the Desktop Application
 ```powershell
 cd "f:\AI Patient Simulation Engine\Patient-Simulator\frontend"
 npm run desktop
 ```
-*(This will launch the Vite development server and open the standalone native desktop application window).*
+*(This launches the Vite development server and opens the standalone native desktop application window).*
 
-### Step 3.5: Build Windows Installer / Standalone `.exe`
-To compile a release Windows installer:
+### Step 4.3: Web-Only Preview (Alternative)
+If Rust or Visual Studio C++ build tools are not yet configured on your machine, you can run the web client directly in any browser:
 ```powershell
-npm run desktop:build
+cd "f:\AI Patient Simulation Engine\Patient-Simulator\frontend"
+npm run dev
 ```
-Compiled binaries will be generated in `frontend/src-tauri/target/release/bundle/msi/` or `nsis/`.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 4. Pre-Configured Test Accounts & Scenarios
+## 5. Git Branching & Contribution Policy
 
-Once the database is seeded (`python seed.py`), the following credentials are ready for use:
+> **CRITICAL RULE**: Direct pushes to `main` are strictly forbidden. All updates must be developed on a dedicated feature branch and merged via Pull Request.
 
-### Test User Logins:
-| Role | Email | Password |
-|---|---|---|
-| **Medical Student** | `student.med2026@bmcri.edu.in` | `password123` |
-| **Faculty / Evaluator** | `faculty.cardio@bmcri.edu.in` | `password123` |
-| **System Admin** | `admin@bmcri.edu.in` | `password123` |
+```powershell
+# 1. Update your local main branch
+git checkout main
+git pull origin main
 
-### Pre-Configured Clinical Cases:
-1. **Acute Anterior STEMI (Cardiology)**:
-   - 58-year-old male with crushing substernal chest pain, diaphoresis, and ECG findings. Multilingual persona (Kannada & English).
-2. **Acute Severe Asthma Exacerbation (Pulmonology)**:
-   - 24-year-old female in respiratory distress, tripod positioning, bilateral expiratory wheeze. Multilingual persona (Hindi & English).
+# 2. Create and switch to your feature branch
+git checkout -b feat/your-feature-name
 
----
+# 3. Stage and commit changes
+git add .
+git commit -m "feat: your concise commit message"
 
-## 5. Common Troubleshooting & FAQs
+# 4. Push to your branch
+git push -u origin feat/your-feature-name
 
-### Q: Why did `pip install -r requirement.txt` fail in the `frontend` folder?
-* **Answer**: The frontend is a Node.js/Tauri application, so dependencies are installed with `npm install`, not `pip`. Python's `pip` is only used inside the `backend` folder with `backend/requirements.txt`.
-
-### Q: PowerShell error: `The term 'f:/AI' is not recognized...`
-* **Answer**: When running commands or scripts in paths that contain spaces (e.g. `F:\AI Patient Simulation Engine`), PowerShell requires quotes and the call operator `&`:
-  ```powershell
-  & "F:\AI Patient Simulation Engine\Patient-Simulator\.venv\Scripts\python.exe" -m ...
-  ```
-
-### Q: Tauri fails to compile with "cargo not recognized"
-* **Answer**: Rust is not installed or not in your current shell's PATH. Install Rust using `winget install Rustlang.Rustup`, then restart your terminal.
+# 5. Open a Pull Request on GitHub for peer review
+```

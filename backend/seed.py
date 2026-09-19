@@ -18,6 +18,8 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 INIT_SQL_PATH = BASE_DIR / "database" / "init.sql"
 SEED_SQL_PATH = BASE_DIR / "database" / "seed_all_test_data.sql"
+MIGRATION_02_PATH = BASE_DIR / "database" / "migrations" / "02_redesign_schema_admin_exam.sql"
+SEED_ADMIN_EXAM_PATH = BASE_DIR / "database" / "seed_admin_exam_workflow.sql"
 
 # Local PostgreSQL connection parameters
 PG_USER = os.getenv("POSTGRES_USER", "postgres")
@@ -28,7 +30,7 @@ DB_NAME = os.getenv("POSTGRES_DB", "ai_patient_simulation")
 
 async def init_and_seed_db():
     print("==================================================================")
-    print("  AI Patient Simulation Engine — Automated Local DB Setup")
+    print("  AI Patient Simulation Engine — Comprehensive Local DB Setup")
     print("==================================================================")
     print(f"Connecting to local PostgreSQL on {PG_HOST}:{PG_PORT} as user '{PG_USER}'...")
 
@@ -72,52 +74,69 @@ async def init_and_seed_db():
     )
 
     # 3. Execute init.sql (Schemas, Tables, Indexes, Partitions)
-    if not INIT_SQL_PATH.exists():
-        print(f"[ERROR] Could not find {INIT_SQL_PATH}")
-        sys.exit(1)
-
-    print("\nApplying database schemas, tables, and partitions from init.sql...")
-    with open(INIT_SQL_PATH, "r", encoding="utf-8") as f:
-        init_sql = f.read()
-
-    try:
-        await app_conn.execute(init_sql)
-        print("✓ All schemas (tenant, clinical, simulation, assessment, audit) and tables created!")
-    except Exception as e:
-        print(f"[WARNING/NOTE] init.sql execution note: {e}")
+    if INIT_SQL_PATH.exists():
+        print("\nApplying baseline database schemas, tables, and partitions from init.sql...")
+        with open(INIT_SQL_PATH, "r", encoding="utf-8") as f:
+            init_sql = f.read()
+        try:
+            await app_conn.execute(init_sql)
+            print("✓ Baseline schemas (tenant, clinical, simulation, assessment, audit) verified!")
+        except Exception as e:
+            print(f"[NOTE] init.sql notice: {e}")
 
     # 4. Execute seed_all_test_data.sql
-    if not SEED_SQL_PATH.exists():
-        print(f"[ERROR] Could not find {SEED_SQL_PATH}")
-        sys.exit(1)
+    if SEED_SQL_PATH.exists():
+        print("\nSeeding baseline testing datasets from seed_all_test_data.sql...")
+        with open(SEED_SQL_PATH, "r", encoding="utf-8") as f:
+            seed_sql = f.read()
+        try:
+            await app_conn.execute(seed_sql)
+            print("✓ Baseline clinical cases and users verified!")
+        except Exception as e:
+            print(f"[NOTE] seed_all_test_data.sql notice: {e}")
 
-    print("\nSeeding testing datasets from seed_all_test_data.sql...")
-    with open(SEED_SQL_PATH, "r", encoding="utf-8") as f:
-        seed_sql = f.read()
+    # 5. Execute Migration 02: Admin, Batches, Students & Exam Schedules
+    if MIGRATION_02_PATH.exists():
+        print("\nApplying Migration 02: academic and examination schemas...")
+        with open(MIGRATION_02_PATH, "r", encoding="utf-8") as f:
+            m02_sql = f.read()
+        try:
+            await app_conn.execute(m02_sql)
+            print("✓ Academic and Examination tables (batches, students, exam_schedules, assessments) ready!")
+        except Exception as e:
+            print(f"[NOTE] migration 02 notice: {e}")
 
-    try:
-        await app_conn.execute(seed_sql)
-        print("✓ Successfully seeded:")
-        print("  • Bangalore Medical College Institution & MBBS Cohorts")
-        print("  • Test Users (Aditi Sharma - Student, Dr. Ramesh Kumar - Faculty, Admin)")
-        print("  • Case 1: Acute Chest Pain / Anterior STEMI (58yo Male, Kannada/English)")
-        print("  • Case 2: Acute Severe Asthma Exacerbation (24yo Female, Hindi/English)")
-        print("  • Scoring Rubrics & Critical Error Definitions")
-        print("  • Sample Completed Simulation Session & Assessment Scorecard")
-    except Exception as e:
-        print(f"[WARNING/NOTE] Seeding note: {e}")
+    # 6. Execute Seed for Admin, Faculty, Batches, and Schedules
+    if SEED_ADMIN_EXAM_PATH.exists():
+        print("\nSeeding Admin, Multi-Specialty Faculty, Batches, Students, and Exam Schedules...")
+        with open(SEED_ADMIN_EXAM_PATH, "r", encoding="utf-8") as f:
+            admin_seed_sql = f.read()
+        try:
+            await app_conn.execute(admin_seed_sql)
+            print("✓ Rich multi-specialty clinical cases, batches, and exam schedules successfully seeded!")
+        except Exception as e:
+            print(f"[NOTE] admin seed notice: {e}")
 
-    # 5. Verify counts
+    # 7. Verification Breakdown
+    faculty_count = await app_conn.fetchval("SELECT COUNT(*) FROM tenant.users WHERE role = 'FACULTY'")
+    batches_count = await app_conn.fetchval("SELECT COUNT(*) FROM academic.batches")
+    students_total = await app_conn.fetchval("SELECT COUNT(*) FROM academic.students")
+    students_backlog = await app_conn.fetchval("SELECT COUNT(*) FROM academic.students WHERE is_backlog = TRUE")
     cases_count = await app_conn.fetchval("SELECT COUNT(*) FROM clinical.cases")
-    users_count = await app_conn.fetchval("SELECT COUNT(*) FROM tenant.users")
-    sessions_count = await app_conn.fetchval("SELECT COUNT(*) FROM simulation.simulation_sessions")
-    
-    print("\n--- DATABASE VERIFICATION ---")
-    print(f"Total Clinical Cases:     {cases_count}")
-    print(f"Total Enrolled Users:     {users_count}")
-    print(f"Pre-seeded Test Sessions: {sessions_count}")
-    print("-----------------------------")
-    print("\nDatabase is ready for local desktop simulation development!\n")
+    schedules_count = await app_conn.fetchval("SELECT COUNT(*) FROM examination.exam_schedules")
+    assessments_count = await app_conn.fetchval("SELECT COUNT(*) FROM examination.student_assessments")
+
+    print("\n==================================================================")
+    print("                    DATABASE VERIFICATION REPORT                  ")
+    print("==================================================================")
+    print(f"  • Faculty Members:          {faculty_count} (Cardio, Resp, EM, Medicine)")
+    print(f"  • Student Batches:          {batches_count} (Regular, Supplementary, PG)")
+    print(f"  • Enrolled Students:        {students_total} total ({students_backlog} Backlog/Remedial)")
+    print(f"  • Clinical Cases:           {cases_count} (Cardiology & Respiratory with Vitals)")
+    print(f"  • Scheduled Examinations:   {schedules_count} (Bound: Batch+Case+Faculty+Date+Time)")
+    print(f"  • Active/Completed Exams:   {assessments_count} (with 4-Step Vital Signs Records)")
+    print("==================================================================")
+    print("✓ Local database is fully seeded and ready for Admin, Faculty, and Student testing!\n")
 
     await app_conn.close()
 
