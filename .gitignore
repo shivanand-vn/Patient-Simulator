@@ -32,4 +32,8 @@ frontend/dist
 !**/.env.example
 env
 env*
+env (1)
+
+# Unrelated nested projects
+AI-Financial-Report-Analyzer/
 
